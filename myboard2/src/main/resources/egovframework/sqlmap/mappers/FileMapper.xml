@@ -1,0 +1,99 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.mapper.FileMapper">
+	<!-- 단일 조회 -->
+	<select id="selectPhotoById" parameterType="int"
+		resultType="egovframework.vo.PhotoVO">
+		SELECT
+		photo_id AS photoId,
+		article_id AS articleId,
+		file_name AS fileName,
+		uuid,
+		file_path AS filePath,
+		file_size AS
+		fileSize,
+		is_thumbnail AS isThumbnail,
+		is_deleted AS isDeleted,
+		uploaded_at AS uploadedAt
+		FROM photo
+		WHERE photo_id = #{photoId}
+	</select>
+	<!-- 사진데이터 저장 -->
+	<insert id="insertFile" parameterType="egovframework.vo.PhotoVO">
+		INSERT INTO photo (
+		article_id,
+		file_name,
+		uuid,
+		file_path,
+		file_size,
+		is_thumbnail,
+		is_deleted,
+		uploaded_at
+		) VALUES (
+		#{articleId},
+		#{fileName},
+		#{uuid}::uuid, <!-- 여기에서 ::uuid로 형변환 -->
+		#{filePath},
+		#{fileSize},
+		#{thumbnail},
+		#{deleted},
+		CURRENT_TIMESTAMP
+		)
+	</insert>
+	<!-- 사진 개별 소프트 딜리트 -->
+	<update id="updateFileSoftDelete" parameterType="int">
+		UPDATE photo
+		SET
+		is_deleted = true
+		WHERE photo_id = #{photoId}
+	</update>
+
+	<!-- 모든 썸네일 false로 초기화 -->
+	<update id="resetThumbnail" parameterType="int">
+		UPDATE photo
+		SET is_thumbnail = false
+		WHERE article_id = #{articleId}
+		AND is_deleted = false  <!-- or is_deleted = false 만 빼도 OK -->
+	</update>
+
+	<!-- 특정 photoId만 썸네일 true -->
+	<update id="setThumbnail" parameterType="int">
+		UPDATE photo
+		SET
+		is_thumbnail = true
+		WHERE photo_id = #{photoId}
+	</update>
+
+	<!-- 영구 삭제 (물리 삭제) -->
+	<delete id="deleteFilePermanently" parameterType="int">
+		DELETE FROM
+		photo
+		WHERE photo_id = #{photoId}
+	</delete>
+
+	<!-- 게시글에 엮인 파일 소프트 삭제 -->
+	<update id="softDeletePhotosByArticleId" parameterType="int">
+		UPDATE photo
+		SET is_deleted = true
+		WHERE article_id = #{articleId}
+	</update>
+
+	<!-- 딜리트가 트루인 애들을 가져옵니다. -->
+	<select id="selectDeletedPhotos"
+		resultType="egovframework.vo.PhotoVO">
+		SELECT
+		photo_id AS photoId,
+		article_id AS articleId,
+		file_name AS fileName,
+		uuid,
+		file_path AS filePath,
+		file_size AS fileSize,
+		is_thumbnail AS isThumbnail,
+		is_deleted AS isDeleted,
+		uploaded_at AS uploadedAt
+		FROM photo
+		WHERE is_deleted = TRUE
+	</select>
+
+</mapper>

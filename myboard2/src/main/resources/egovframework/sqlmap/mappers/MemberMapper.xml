@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="egovframework.mapper.MemberMapper">
+
+<!-- 아이디 중복 확인 -->
+<select id="isMemberIdExists" parameterType="string" resultType="boolean">
+	SELECT EXISTS ( -- 서브쿼리에 데이터가 존재하는지 체크하고 boolean으로 반환
+		SELECT 1 FROM member WHERE member_id = #{memberId} AND is_deleted = FALSE -- SELECT 1 을사용해서 행이 존재하는지만 판단 *보다 리소스 사용 덜함
+	)
+</select>
+
+<!-- 사용자등록 -->
+<insert id="insertMember" parameterType="egovframework.vo.MemberVO">
+	INSERT INTO member (
+		member_id, password, name, is_deleted, created_at, updated_at
+	) VALUES (
+		#{memberId}, #{password}, #{name}, FALSE, NOW(), NOW()
+	)
+</insert>
+
+<!-- 사용자 조회 -->
+<select id="getMemberByMemberId" parameterType="string" resultType="egovframework.vo.MemberVO">
+	SELECT member_sn, member_id, password, name, is_deleted, created_at, updated_at
+	FROM member
+	WHERE member_id = #{memberId} AND is_deleted = FALSE
+</select>
+
+</mapper>
